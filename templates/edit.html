@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Edit page</title>
+</head>
+<body>
+  <form>
+        <label for="book_id">Book Id:</label>
+        <input name="book_id" value={{book_id}} type="hidden"><br>
+        <label for="book_name">Book name:</label>
+        <input name="book_name" type="text" value="{{ values.get('book_name') }}"><br>
+        <label for="author_name">Author name:</label>
+        <input name="author_name" type="text" value="{{ values.get('author_name') }}"><br>
+        <label for="isbn">ISBN:</label>
+        <input name="isbn" value="{{ values.get('isbn') }}"><br>
+        <input type="submit" formaction="./display" formmethod="POST">
+    </form>
+</body>
+</html>
