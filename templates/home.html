@@ -4,6 +4,9 @@
       Home page
   </title>
   <body>
+    {% if mode == "YES" %}
+      <h2>You are in Admin Mode</h2>
+    {% endif %}
     <form method='post'>
         <label for="book_id">Book Id:</label>
         <input name="book_id"><br>
