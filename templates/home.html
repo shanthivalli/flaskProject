@@ -7,27 +7,18 @@
     {% if mode == "YES" %}
       <h2>You are in Admin Mode</h2>
     {% endif %}
+    <div id="book-info">
     <form method='post'>
-        <label for="book_id">Book Id:</label>
-        <input name="book_id"><br>
         <label for="book_name">Book name:</label>
         <input name="book_name" type="text"><br>
         <label for="author_name">Author name:</label>
         <input name="author_name" type="text"><br>
         <label for="isbn">ISBN:</label>
         <input name="isbn"><br>
-        <input type="submit" formaction="./display" formmethod="POST">
+        <input type="submit" id= "submit-btn" formaction="/v1/form" formmethod="POST">
     </form>
-    <ul>
-      {% for book in books %}
-        <li>BookId: {{book}},
-            BookName: {{ books.get(book).get("book_name") }},
-            AuthorName: {{ books.get(book).get("author_name") }},
-            ISBN: {{ books.get(book).get("isbn") }}
-            <form style="display: inline-block"><input type="submit" value="Edit" formaction="{{ url_for('edit', book_num=book) }}"></form>
-            <form style="display: inline-block"><input type="submit" value="Delete" formaction="{{ url_for('delete', book_num=book) }}"></form>
-        </li>
-      {% endfor %}
-    </ul>
+    <button id="display">display</button>
+    </div>
+    <script src="{{ url_for('static', filename = 'main.js') }}"></script>
   </body>
 </html>
