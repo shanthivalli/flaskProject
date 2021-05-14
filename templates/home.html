@@ -1,24 +1,23 @@
 <!DOCTYPE html>
 <html>
-  <title>
-      Home page
-  </title>
-  <body>
-    {% if mode == "YES" %}
-      <h2>You are in Admin Mode</h2>
-    {% endif %}
-    <div id="book-info">
-    <form method='post'>
-        <label for="book_name">Book name:</label>
-        <input name="book_name" type="text"><br>
-        <label for="author_name">Author name:</label>
-        <input name="author_name" type="text"><br>
-        <label for="isbn">ISBN:</label>
-        <input name="isbn"><br>
-        <input type="submit" id= "submit-btn" formaction="/v1/form" formmethod="POST">
-    </form>
-    <button id="display">display</button>
-    </div>
-    <script src="{{ url_for('static', filename = 'main.js') }}"></script>
-  </body>
+    <title>
+        Home page
+    </title>
+    <body>
+        {% if mode == "YES" %}
+            <h2>You are in Admin Mode</h2>
+        {% endif %}
+        <div id="validationError"></div>
+        <form onsubmit="event.preventDefault();onFormSubmit();" autocomplete="off">
+            <label for="book_name">Book name:</label>
+            <input name="book_name" type="text" id="book_name"><br>
+            <label for="author_name">Author name:</label>
+            <input name="author_name" type="text" id="author_name"><br>
+            <label for="isbn">ISBN:</label>
+            <input name="isbn" id="isbn"><br>
+            <input type="submit" id="submit-btn">
+        </form>
+        <div id="book-info"></div>
+        <script src="{{ url_for('static', filename = 'main.js') }}"></script>
+    </body>
 </html>
