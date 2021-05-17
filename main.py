@@ -18,13 +18,13 @@ class User(ndb.Model):
     password = ndb.StringProperty()
 
 
-@app.before_request
-def check():
-    valid_routes = ['login', 'signup']
-    print(session)
-    print(request.endpoint)
-    if request.endpoint not in valid_routes and 'sess_id' not in session:
-        return render_template('login.html', display="You are not logged in")
+# @app.before_request
+# def check():
+#     valid_routes = ['login', 'signup']
+#     print(session)
+#     print(request.endpoint)
+#     if request.endpoint not in valid_routes and 'sess_id' not in session:
+#         return render_template('login.html', display="You are not logged in")
 
 
 @app.route('/', methods=['GET', 'POST'])
