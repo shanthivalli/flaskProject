@@ -1,13 +1,18 @@
 const page_cont = document.getElementById("book-info");
 let prev_cursors = [];
+let next_cursor;
+let scrollIsActive = false;
+let onLoad;
 
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", onLoad = () => {
     console.log("hii")
     let xhr = new XMLHttpRequest();
     xhr.onload = function(){
         let data = JSON.parse(xhr.responseText);
+        page_cont.innerHTML = "";
         paginate(data);
+        console.log("first", next_cursor);
         console.log("data");
     };
     xhr.open('GET', 'http://127.0.0.1:5000/v1/books', true);
@@ -17,17 +22,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function onFormSubmit(){
     if(validate()){
-        let formData = new FormData();
-        formData.append('book_name', document.getElementById("book_name").value);
-        formData.append('author_name', document.getElementById("author_name").value);
-        formData.append('isbn', document.getElementById("isbn").value);
+        book_name = document.getElementById("book_name").value;
+        author_name = document.getElementById("author_name").value;
+        isbn = document.getElementById("isbn").value;
         let xhr = new XMLHttpRequest();
         xhr.onload = function(){
             let res = JSON.parse(xhr.responseText);
             console.log(res);
+            onLoad();
         }
         xhr.open('POST', 'http://127.0.0.1:5000/v1/forms', true);
-        xhr.send(formData);
+        xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+        xhr.send(JSON.stringify({"book_name": book_name, "author_name": author_name, "isbn": isbn }));
         resetForm();
     }
 }
@@ -41,20 +47,13 @@ function resetForm(){
 
 
 function paginate(data){
+    scrollIsActive = false;
+    console.log(scrollIsActive)
+    if(!document.getElementById("loader").classList.contains('hide')){
+        document.getElementById("loader").classList.add('hide');
+    }
+    let disString = ``;
     console.log(data);
-    let disString = `
-        <table border="1px solid black">
-            <thead>
-                <tr>
-                    <th>BookId</th>
-                    <th>BookName</th>
-                    <th>AuthorName</th>
-                    <th>ISBN</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-    `
     books = data["books"];
     function createRow(book,index){
         disString += `
@@ -67,19 +66,30 @@ function paginate(data){
             </tr>`
     };
     books.forEach(createRow);
-    disString+=`</tbody></table><button id="prev">Previous</button><button id="next">Next</button>`
-    page_cont.innerHTML = disString;
-    if(!data['more']){
-        document.getElementById("next").disabled = true;
+    next_cursor = data["next_cursor"];
+    page_cont.insertAdjacentHTML('beforeend', disString);
+}
+
+
+window.addEventListener('scroll',()=>{
+    console.log("inside scroll", scrollIsActive)
+    const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+    if (!scrollIsActive && clientHeight + scrollTop >= scrollHeight-5){
+        scrollIsActive = true;
+        showLoading();
     }
-    if(data['curr_cursor']===null){
-        document.getElementById("prev").disabled = true;
+});
+
+
+function showLoading(){
+    document.getElementById("loader").classList.remove('hide');
+    if(next_cursor !== null){
+        setTimeout(nextPage(next_cursor), 10000);
     }
-    document.getElementById("next").onclick = function() {nextPage(data['next_cursor']);};
-    prev_cursors.push(data['curr_cursor']);
-    console.log(prev_cursors);
-    document.getElementById("prev").onclick = function() {prevPage();};
-};
+    else{
+        document.getElementById("loader").classList.add('hide');
+    }
+}
 
 
 function nextPage(curr_cursor){
@@ -87,7 +97,7 @@ function nextPage(curr_cursor){
     xhr.onload = function(){
         let data = JSON.parse(xhr.responseText);
         paginate(data);
-        console.log("data");
+        console.log(data);
     };
     xhr.open('GET', 'http://127.0.0.1:5000/v1/books?cursor='+curr_cursor, true);
     xhr.send();
@@ -119,16 +129,14 @@ function edit(data){
     console.log(data.parentElement.id)
     console.log(data.innerHTML);
     console.log(data.title);
-    let my_data = new FormData();
-    my_data.append('key', data.title);
-    my_data.append('value', data.innerHTML);
     let xhr = new XMLHttpRequest();
     xhr.onload = function(){
         let res = JSON.parse(xhr.responseText);
         console.log(res);
     }
     xhr.open('PUT', 'http://127.0.0.1:5000/v1/books/'+data.parentElement.id, true);
-    xhr.send(my_data);
+    xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+    xhr.send(JSON.stringify({"key": data.title, "value": data.innerHTML }));
 }
 
 

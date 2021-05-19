@@ -1,8 +1,11 @@
 <!DOCTYPE html>
 <html>
-    <title>
-        Home page
-    </title>
+    <head>
+        <title>
+            Home page
+        </title>
+        <link rel="stylesheet" href="{{ url_for('static', filename = 'styles.css') }}">
+    </head>
     <body>
         {% if mode == "YES" %}
             <h2>You are in Admin Mode</h2>
@@ -17,7 +20,22 @@
             <input name="isbn" id="isbn"><br>
             <input type="submit" id="submit-btn">
         </form>
-        <div id="book-info"></div>
+        <table border="1px solid black">
+            <thead>
+                <tr>
+                    <th>BookId</th>
+                    <th>BookName</th>
+                    <th>AuthorName</th>
+                    <th>ISBN</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="book-info">
+            </tbody>
+        </table>
+        <div id ="loader" class="loading hide">
+            <img src="{{ url_for('static', filename = 'loader.gif') }}">
+        </div>
         <script src="{{ url_for('static', filename = 'main.js') }}"></script>
     </body>
 </html>

@@ -11,6 +11,7 @@ class Book(ndb.Model):
     book_name = ndb.StringProperty()
     author_name = ndb.StringProperty()
     isbn = ndb.StringProperty()
+    date_time = ndb.DateTimeProperty(auto_now=True)
 
 
 class User(ndb.Model):
@@ -18,13 +19,13 @@ class User(ndb.Model):
     password = ndb.StringProperty()
 
 
-# @app.before_request
-# def check():
-#     valid_routes = ['login', 'signup']
-#     print(session)
-#     print(request.endpoint)
-#     if request.endpoint not in valid_routes and 'sess_id' not in session:
-#         return render_template('login.html', display="You are not logged in")
+@app.before_request
+def check():
+    valid_routes = ['login', 'signup']
+    print(session)
+    print(request.endpoint)
+    if request.endpoint not in valid_routes and 'sess_id' not in session:
+        return render_template('login.html', display="You are not logged in")
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -79,11 +80,12 @@ def home():
 
 @app.route('/v1/forms', methods=['POST'])
 def form_action():
+    json_req_data = request.json
     client = ndb.Client()
     with client.context():
-        book = Book(book_name=request.form.get('book_name'),
-                    author_name=request.form.get('author_name'),
-                    isbn=request.form.get('isbn'))
+        book = Book(book_name=json_req_data.get('book_name'),
+                    author_name=json_req_data.get('author_name'),
+                    isbn=json_req_data.get('isbn'))
         book.key = ndb.Key('Book', uuid.uuid4().hex)
         book.put()
     return jsonify(book_name=book.book_name, author_name=book.author_name, isbn=book.isbn)
@@ -91,7 +93,7 @@ def form_action():
 
 @app.route('/v1/books', methods=['GET'])
 def books_list():
-    REQ_PER_PAGE = 5
+    REQ_PER_PAGE = 20
     books_db = []
     curr_cursor = None
     prev_cursor = None
@@ -101,7 +103,7 @@ def books_list():
     print(curr_cursor)
     client = ndb.Client()
     with client.context():
-        results, cursor, more = Book.query().fetch_page(REQ_PER_PAGE, start_cursor=curr_cursor)
+        results, cursor, more = Book.query().order("-date_time").fetch_page(REQ_PER_PAGE, start_cursor=curr_cursor)
         if cursor:
             cursor = cursor.urlsafe().decode()
         for book in results:
@@ -114,8 +116,9 @@ def books_list():
 
 @app.route('/v1/books/<book_id>', methods=["PUT"])
 def edit(book_id):
-    name = request.form.get("key")
-    value = request.form.get("value")
+    json_data = request.json
+    name = json_data.get("key")
+    value = json_data.get("value")
     client = ndb.Client()
     with client.context():
         book = Book.get_by_id(book_id)
