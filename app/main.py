@@ -1,8 +1,8 @@
 from flask import Flask, request, redirect, url_for, render_template, abort, jsonify, session
 from google.cloud import ndb
-import json
 import os
 import uuid
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "hieuhgnthisli"
 
@@ -117,18 +117,17 @@ def books_list():
 @app.route('/v1/books/<book_id>', methods=["PUT"])
 def edit(book_id):
     json_data = request.json
-    name = json_data.get("key")
-    value = json_data.get("value")
     client = ndb.Client()
     with client.context():
         book = Book.get_by_id(book_id)
-        if name == 'book_name':
-            book.book_name = value
-        elif name == 'author_name':
-            book.author_name = value
-        elif name == 'isbn':
-            book.isbn = value
-        book.put()
+        for x in json_data:
+            if x == 'book_name':
+                book.book_name = json_data[x]
+            elif x == 'author_name':
+                book.author_name = json_data[x]
+            elif x == 'isbn':
+                book.isbn = json_data[x]
+            book.put()
     return jsonify(book_name=book.book_name, author_name=book.author_name, isbn=book.isbn)
 
 

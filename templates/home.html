@@ -10,32 +10,43 @@
         {% if mode == "YES" %}
             <h2>You are in Admin Mode</h2>
         {% endif %}
-        <div id="validationError"></div>
-        <form onsubmit="event.preventDefault();onFormSubmit();" autocomplete="off">
-            <label for="book_name">Book name:</label>
-            <input name="book_name" type="text" id="book_name"><br>
-            <label for="author_name">Author name:</label>
-            <input name="author_name" type="text" id="author_name"><br>
-            <label for="isbn">ISBN:</label>
-            <input name="isbn" id="isbn"><br>
-            <input type="submit" id="submit-btn">
-        </form>
-        <table border="1px solid black">
-            <thead>
-                <tr>
-                    <th>BookId</th>
-                    <th>BookName</th>
-                    <th>AuthorName</th>
-                    <th>ISBN</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody id="book-info">
-            </tbody>
+        <table>
+            <tr>
+                <td>
+                    <div id="validationError"></div>
+                    <form onsubmit="event.preventDefault();onFormSubmit();" autocomplete="off">
+                        <label for="book_name">Book name:</label><br>
+                        <input name="book_name" type="text" id="book_name"><br>
+                        <label for="author_name">Author name:</label><br>
+                        <input name="author_name" type="text" id="author_name"><br>
+                        <label for="isbn">ISBN:</label><br>
+                        <input name="isbn" id="isbn"><br>
+                        <input type="submit" id="submit-btn">
+                    </form>
+                </td>
+                <td>
+                    <div id="books">
+                        <table id="table" border="1px solid black">
+                            <thead>
+                                <tr>
+                                    <th>BookId</th>
+                                    <th>BookName</th>
+                                    <th>AuthorName</th>
+                                    <th>ISBN</th>
+                                    <th></th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="book-info">
+                            </tbody>
+                        </table>
+                        <div id ="loader" class="loading hide">
+                            <img src="{{ url_for('static', filename = 'loader.gif') }}">
+                        </div>
+                    </div>
+                </td>
+            </tr>
         </table>
-        <div id ="loader" class="loading hide">
-            <img src="{{ url_for('static', filename = 'loader.gif') }}">
-        </div>
         <script src="{{ url_for('static', filename = 'main.js') }}"></script>
     </body>
 </html>

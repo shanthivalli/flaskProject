@@ -1,18 +1,18 @@
-const page_cont = document.getElementById("book-info");
-let prev_cursors = [];
-let next_cursor;
+const bookInfo = document.getElementById("book-info");
+const booksTable = document.getElementById("books")
+let nextCursor;
 let scrollIsActive = false;
+let timesEditClicked = 0;
 let onLoad;
-
 
 document.addEventListener("DOMContentLoaded", onLoad = () => {
     console.log("hii")
     let xhr = new XMLHttpRequest();
     xhr.onload = function(){
         let data = JSON.parse(xhr.responseText);
-        page_cont.innerHTML = "";
+        bookInfo.innerHTML = "";
         paginate(data);
-        console.log("first", next_cursor);
+        console.log("first", nextCursor);
         console.log("data");
     };
     xhr.open('GET', 'http://127.0.0.1:5000/v1/books', true);
@@ -47,7 +47,6 @@ function resetForm(){
 
 
 function paginate(data){
-    scrollIsActive = false;
     console.log(scrollIsActive)
     if(!document.getElementById("loader").classList.contains('hide')){
         document.getElementById("loader").classList.add('hide');
@@ -59,22 +58,26 @@ function paginate(data){
         disString += `
             <tr id="${book.book_id}">
                 <td>${book.book_id}</td>
-                <td contenteditable="true" onblur="edit(this)" title="book_name">${book.book_name}</td>
-                <td contenteditable="true" onblur="edit(this)" title="author_name">${book.author_name}</td>
-                <td contenteditable="true" onblur="edit(this)" title="isbn">${book.isbn}</td>
+                <td title="book_name">${book.book_name}</td>
+                <td title="author_name">${book.author_name}</td>
+                <td title="isbn">${book.isbn}</td>
+                <td><img id="edit-icon" src="static/edit-icon.png" onclick="edit(this)"></td>
                 <td><button style="display: inline-block" id="del-btn" onclick="del(this)">Delete</button></td>
             </tr>`
     };
     books.forEach(createRow);
-    next_cursor = data["next_cursor"];
-    page_cont.insertAdjacentHTML('beforeend', disString);
+    nextCursor = data["next_cursor"];
+    bookInfo.insertAdjacentHTML('beforeend', disString);
+    console.log("height", booksTable.offsetHeight);
+    scrollIsActive = false;
 }
 
 
-window.addEventListener('scroll',()=>{
+booksTable.addEventListener('scroll',()=>{
     console.log("inside scroll", scrollIsActive)
-    const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
-    if (!scrollIsActive && clientHeight + scrollTop >= scrollHeight-5){
+    console.log("top",booksTable.scrollTop);
+    console.log("height",booksTable.scrollHeight)
+    if (!scrollIsActive && booksTable.offsetHeight + booksTable.scrollTop >= booksTable.scrollHeight){
         scrollIsActive = true;
         showLoading();
     }
@@ -83,8 +86,8 @@ window.addEventListener('scroll',()=>{
 
 function showLoading(){
     document.getElementById("loader").classList.remove('hide');
-    if(next_cursor !== null){
-        setTimeout(nextPage(next_cursor), 10000);
+    if(nextCursor !== null){
+        setTimeout(nextPage(nextCursor), 1000);
     }
     else{
         document.getElementById("loader").classList.add('hide');
@@ -92,65 +95,64 @@ function showLoading(){
 }
 
 
-function nextPage(curr_cursor){
+function nextPage(currCursor){
     let xhr = new XMLHttpRequest();
     xhr.onload = function(){
         let data = JSON.parse(xhr.responseText);
         paginate(data);
         console.log(data);
     };
-    xhr.open('GET', 'http://127.0.0.1:5000/v1/books?cursor='+curr_cursor, true);
+    xhr.open('GET', 'http://127.0.0.1:5000/v1/books?cursor='+currCursor, true);
     xhr.send();
 }
 
 
-function prevPage(){
-    prev_cursors.pop();
-    curr_cursor = prev_cursors.pop();
-    let xhr = new XMLHttpRequest();
-    xhr.onload = function(){
-        let data = JSON.parse(xhr.responseText);
-        paginate(data);
-        console.log("data");
-    };
-    if(curr_cursor!==null){
-        xhr.open('GET', 'http://127.0.0.1:5000/v1/books?cursor='+curr_cursor, true);
-        xhr.send();
+function edit(data){
+    timesEditClicked += 1;
+    let editObj = {};
+    elements = data.parentElement.parentElement.childNodes;
+    console.log("inside edit1");
+    if(timesEditClicked === 1){
+        data.style.opacity = "0.5";
+        for(x of elements){
+            if(x.title === "book_name" || x.title === "author_name" || x.title === "isbn")
+                x.contentEditable=true;
+        }
     }
     else{
-        xhr.open('GET', 'http://127.0.0.1:5000/v1/books', true);
-        xhr.send();
+        data.style.opacity = "1";
+        timesEditClicked = 0;
+        for(x of elements){
+            if(x.title === "book_name" || x.title === "author_name" || x.title === "isbn"){
+                x.contentEditable=false;
+                editObj[x.title] = x.innerHTML;
+            }
+        }
+        let xhr = new XMLHttpRequest();
+        xhr.onload = function(){
+            let res = JSON.parse(xhr.responseText);
+            console.log(res);
+        }
+        xhr.open('PUT', 'http://127.0.0.1:5000/v1/books/'+x.parentElement.id, true);
+        xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+        xhr.send(JSON.stringify(editObj));
     }
-}
-
-
-function edit(data){
-    console.log("inside edit");
-    console.log(data.parentElement.id)
-    console.log(data.innerHTML);
-    console.log(data.title);
-    let xhr = new XMLHttpRequest();
-    xhr.onload = function(){
-        let res = JSON.parse(xhr.responseText);
-        console.log(res);
-    }
-    xhr.open('PUT', 'http://127.0.0.1:5000/v1/books/'+data.parentElement.id, true);
-    xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-    xhr.send(JSON.stringify({"key": data.title, "value": data.innerHTML }));
 }
 
 
 function del(data){
     console.log("inside delete");
     console.log(data.parentElement.parentElement.id)
-    let xhr = new XMLHttpRequest();
-    xhr.onload = function(){
-        let res = JSON.parse(xhr.responseText);
-        console.log(res);
+    if(confirm("Are you sure to delete this record?")){
+        let xhr = new XMLHttpRequest();
+        xhr.onload = function(){
+            let res = JSON.parse(xhr.responseText);
+            console.log(res);
+        }
+        xhr.open('DELETE', 'http://127.0.0.1:5000/v1/books/'+data.parentElement.parentElement.id, true);
+        xhr.send();
+        data.parentElement.parentElement.remove();
     }
-    xhr.open('DELETE', 'http://127.0.0.1:5000/v1/books/'+data.parentElement.parentElement.id, true);
-    xhr.send();
-    data.parentElement.parentElement.remove();
 }
 
 
