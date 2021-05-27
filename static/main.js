@@ -3,37 +3,27 @@ const booksTable = document.getElementById("books")
 let nextCursor;
 let scrollIsActive = false;
 let timesEditClicked = 0;
-let onLoad;
-
-document.addEventListener("DOMContentLoaded", onLoad = () => {
-    console.log("hii")
-    let xhr = new XMLHttpRequest();
-    xhr.onload = function(){
-        let data = JSON.parse(xhr.responseText);
-        bookInfo.innerHTML = "";
-        paginate(data);
-        console.log("first", nextCursor);
-        console.log("data");
-    };
-    xhr.open('GET', 'http://127.0.0.1:5000/v1/books', true);
-    xhr.send();
-});
 
 
-function onFormSubmit(){
+async function fetchBooks(){
+    let res = await fetch('/v1/books').then(res => res.json());
+    bookInfo.innerHTML = "";
+    paginate(res);
+}
+document.addEventListener("DOMContentLoaded", fetchBooks());
+
+
+async function onFormSubmit(){
     if(validate()){
         book_name = document.getElementById("book_name").value;
         author_name = document.getElementById("author_name").value;
         isbn = document.getElementById("isbn").value;
-        let xhr = new XMLHttpRequest();
-        xhr.onload = function(){
-            let res = JSON.parse(xhr.responseText);
-            console.log(res);
-            onLoad();
-        }
-        xhr.open('POST', 'http://127.0.0.1:5000/v1/forms', true);
-        xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-        xhr.send(JSON.stringify({"book_name": book_name, "author_name": author_name, "isbn": isbn }));
+        await fetch('/v1/forms',{
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({"book_name": book_name, "author_name": author_name, "isbn": isbn })
+        });
+        fetchBooks();
         resetForm();
     }
 }
@@ -87,7 +77,7 @@ booksTable.addEventListener('scroll',()=>{
 function showLoading(){
     document.getElementById("loader").classList.remove('hide');
     if(nextCursor !== null){
-        setTimeout(nextPage(nextCursor), 1000);
+        nextPage(nextCursor);
     }
     else{
         document.getElementById("loader").classList.add('hide');
@@ -95,15 +85,9 @@ function showLoading(){
 }
 
 
-function nextPage(currCursor){
-    let xhr = new XMLHttpRequest();
-    xhr.onload = function(){
-        let data = JSON.parse(xhr.responseText);
-        paginate(data);
-        console.log(data);
-    };
-    xhr.open('GET', 'http://127.0.0.1:5000/v1/books?cursor='+currCursor, true);
-    xhr.send();
+async function nextPage(currCursor){
+    let data = await fetch('/v1/books?cursor='+currCursor).then(data => data.json());
+    paginate(data);
 }
 
 
@@ -128,14 +112,11 @@ function edit(data){
                 editObj[x.title] = x.innerHTML;
             }
         }
-        let xhr = new XMLHttpRequest();
-        xhr.onload = function(){
-            let res = JSON.parse(xhr.responseText);
-            console.log(res);
-        }
-        xhr.open('PUT', 'http://127.0.0.1:5000/v1/books/'+x.parentElement.id, true);
-        xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-        xhr.send(JSON.stringify(editObj));
+        fetch('/v1/books/'+x.parentElement.id,{
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(editObj)
+        });
     }
 }
 
@@ -144,13 +125,9 @@ function del(data){
     console.log("inside delete");
     console.log(data.parentElement.parentElement.id)
     if(confirm("Are you sure to delete this record?")){
-        let xhr = new XMLHttpRequest();
-        xhr.onload = function(){
-            let res = JSON.parse(xhr.responseText);
-            console.log(res);
-        }
-        xhr.open('DELETE', 'http://127.0.0.1:5000/v1/books/'+data.parentElement.parentElement.id, true);
-        xhr.send();
+        fetch('/v1/books/'+data.parentElement.parentElement.id,{
+            method: 'DELETE'
+        });
         data.parentElement.parentElement.remove();
     }
 }
